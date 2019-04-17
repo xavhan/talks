@@ -1,0 +1,12 @@
+{
+  "name": "talks",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {
+    "mdx-deck": "^2.2.1"
+  },
+  "author": "Xavier Haniquaut <xavier.haniquaut@simplifield.com>",
+  "license": "ISC"
+}
