@@ -7,6 +7,9 @@
   "devDependencies": {
     "mdx-deck": "^2.2.1"
   },
+  "scripts": {
+    "start:i18n": "mdx-deck i18n_at_simplifield/i18n.mdx"
+  },  
   "author": "Xavier Haniquaut <xavier.haniquaut@simplifield.com>",
   "license": "ISC"
 }
