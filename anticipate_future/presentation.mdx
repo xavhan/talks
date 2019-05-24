@@ -1,0 +1,264 @@
+import { Appear } from 'mdx-deck'
+
+# Anticipate Future
+🤖
+> We want new toys!
+
+---
+
+# My vision of the future
+
+<ul>
+  <Appear>
+    <li>Future seems always better</li>
+    <li>Future is fun</li>
+    <li>Future can be obsolete really fast</li>
+    <li>Sometimes past vision of the future was 💩</li>
+    <li>Most of the time (we try) to anticipate the wrong things</li>
+  </Appear>
+</ul>
+
+---
+
+# So what we need is 
+
+<ul>
+  <Appear>
+    <li>Keep having fun</li>
+    <li>Being efficient</li>
+    <li>Being able to rollback our eventual soon to be 💩</li>
+    <li>Being agile</li>
+  </Appear>
+</ul>
+
+---
+
+## Tools to play with the future
+
+---
+
+# Bridge Pattern
+
+---
+
+- Decouple an abstraction from its implementation so that the two can vary independently.
+- Beyond encapsulation, to insulation
+
+---
+
+Demo
+
+---
+
+```js
+  // ResourcesApiService (talk to the outside)
+  ResourceApiService.list = async () => {
+    const resources = await http.get('/api/resources');
+    return resourses;
+  }
+
+  // ResourceService (bridge between business and api)
+  ResourceService.list = async () => {
+    const resources = await ResourceApiService.list();
+    return resourses
+      .map(transform1)
+      .map(transform2);
+  }
+
+  // Leaf component 
+  class ResourcesDisplayerCTRL {
+    async initHook() {
+      this.resources = await ResourceService.list();
+    }
+  }
+```
+
+---
+
+```js
+  // ResourcesApiService (talk to the outside)
+  ResourceApiService.list = async () => {
+    const resources = await http.get('/api/resources');
+    return resourses;
+  }
+
+  // ResourceService (bridge between business and api)
+  ResourceService.list = async () => {
+    const resources = await ResourceApiService.list();
+    return resourses
+      .map(fakeFuture) // <--
+      .map(transform3); // < Future proof
+  }
+
+  // Controller
+  class ResourcesDisplayerCTRL {
+    async initHook() {
+      this.resources = await ResourceService.list();
+    }
+  }
+```
+
+---
+
+```js
+  // ResourcesApiService (talk to the outside)
+  ResourceApiService.list = async () => {
+    const resources = await http.get('/api/resources');
+    return resourses.map(fakeFuture); // <--
+  }
+
+  // ResourceService (bridge between business and api)
+  ResourceService.list = async () => { // < future proof
+    const resources = await ResourceApiService.list();
+    return resourses.map(transform2);
+  }
+
+  // Controller
+  class ResourcesDisplayerCTRL {
+    async initHook() {
+      this.resources = await ResourceService.list();
+    }
+  }
+```
+
+---
+
+```js
+  // ResourcesApiService (talk to the outside)
+  ResourceApiService.list = async () => {
+    const resources = await http.get('/api/resources'); // < future is now present
+    return resourses; 
+  }
+
+  // ResourceService (bridge between business and api)
+  ResourceService.list = async () => {
+    const resources = await ResourceApiService.list();
+    return resourses.map(transform2);
+  }
+
+  // Controller
+  class ResourcesDisplayerCTRL {
+    async initHook() {
+      this.resources = await ResourceService.list();
+    }
+  }
+```
+
+---
+
+# Adapter Pattern
+
+---
+
+- Convert the interface of a class into another interface clients expect. Adapter lets classes work together that couldn't otherwise because of incompatible interfaces.
+- Wrap an existing class with a new interface.
+- Impedance match an old component to a new system
+
+---
+
+```js
+  // OldService
+  ResourceApiService.getTheOldWay = async (id, config) => {
+    const resources = await http.get('/api/v1/resources/' + id, config);
+    return resourses;
+  }
+
+  // Leaf component 
+  class ResourcesDisplayerCTRL {
+    async initHook() {
+      this.resources = await ResourceService.getTheOldWay(1, {});
+    }
+  }
+```
+---
+```js
+  // OldService
+  ResourceApiService.getTheOldWay = async (id, config) => {
+    const resources = await http.get('/api/v1/resources/' + id, config);
+    return resourses;
+  }
+
+  // NewService
+  ResourceApiService.getTheNewWay = async (newConfigFormat, id)  => {
+    const resources = await http.get('/api/v2/resources/' + id, newConfigFormat);
+    return resourses;
+  }
+
+  // Leaf component 
+  class ResourcesDisplayerCTRL {
+    async initHook() {
+      this.resources = await ResourceService.getTheOldWay(1, {});
+    }
+  }
+```
+---
+```js
+  // NewService
+  ResourceApiService.getTheNewWay = async (newConfigFormat, id)  => {
+    const resources = await http.get('/api/v2/resources/' + id, newConfigFormat);
+    return resourses;
+  }
+
+  // ADAPTER
+  ResourceAdapter.listTheOldWay = ...oldArgs => {
+    const transform  = ([a, b]) => [b, a];
+    const newArgs = transform(oldArgs);
+    return ResourceApiService.listTheNewWay(...newArgs);
+  }
+
+  // Leaf component 
+  class ResourcesDisplayerCTRL {
+    async initHook() {
+      this.resources = await ResourceAdapter.listTheOldWay(1, {});
+    }
+  }
+```
+---
+```js
+  // ADAPTER
+  ResourceAdapter.listTheOldWay = ...oldArgs => {
+    // Deprecation notice
+    console.log('you are doing it the old way, please convert to the new way')
+    const transform  = ([a, b]) => [b, a];
+    const newArgs = transform(oldArgs);
+    return ResourceApiService.listTheNewWay(...newArgs);
+  }
+```
+---
+```js
+  // NewService
+  ResourceApiService.getTheNewWay = async (newConfigFormat, id)  => {
+    const resources = await http.get('/api/v2/resources/' + id, newConfigFormat);
+    return resourses;
+  }
+
+  // Leaf component 
+  class ResourcesDisplayerCTRL {
+    async initHook() {
+      this.resources = await ResourceApiService.listTheNewWay({}, 1);
+    }
+  }
+```
+---
+
+# To sum up
+
+---
+
+- easy to test
+- easy to grasp
+- really well fitted for mocking
+- perform evolution in a incremental way
+
+---
+
+## Resources
+
+https://sourcemaking.com/design_patterns/
+
+--- 
+
+## Real life examples
+
+- catalogs and product question development.
+- simple-table adapter service
