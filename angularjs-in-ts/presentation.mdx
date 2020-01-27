@@ -1,0 +1,236 @@
+import { prism } from 'mdx-deck/themes'
+import { Split } from 'mdx-deck'
+
+export const themes = [
+  prism
+]
+
+---
+
+# AngularJS in Typescript
+
+---
+
+# Typescript, what is new?
+
+- types (duh!) / interfaces 
+  - -> better autocompletion
+  - -> enforce coherence
+- future JS is included
+  - goodies for classes (private / static ...)
+  - .? ?? ...
+- community / salary
+- a lot more ...
+
+---
+
+# What we will do?
+
+- We can use it in // to our current Js code
+- We should initiate the conversion of our existing codebase incrementally
+
+---
+
+# For what gain?
+
+- Happy devs (thanks for the amazing support)
+- Easier onboarding -> more descriptive codebase
+  - hopefully closest to business definitions
+- Less unit testing necessary
+- More attractivity for recruiting
+- Less 💩
+
+---
+
+# But there is a twist!
+
+---
+
+# AngularJS
+
+# Current state of the codebase
+
+---
+
+- AngularJS in not really made with TS in mind (but we are!)
+- Naming conventions
+- Biases -> service/factory class/function mutability
+
+---
+
+# Transition plan
+## Totally open for discussion / improvment
+
+`sf-frontend/src/Typescript.README.md`
+
+---
+
+# Core types 
+
+- Will come from monorepo in a soon to come future
+- Will be generated from the JSONSchema definitions
+- Temporary written by hand in `sf-frontend/src/app/index.d.ts`
+
+---
+
+# Main Generics
+
+- `sf-frontend/src/app/index.d.ts`
+
+```ts
+IAPIResource<C?,H?>
+IAPIList<R?,H?>
+IHash<C?>
+```
+
+---
+
+```ts
+export type IAPIResource<Contents = Record<string, unknown>, Hashes = {}> = {
+  _id: ObjectId;
+  contents: Contents;
+} & Hashes;
+
+export type IAPIList<Resource = IAPIResource, Hashes = {}> = {
+  entries: Resource[];
+  count: number;
+} & Hashes;
+
+export type IHash<Contents = Record<string, unknown>> = Record<
+  ObjectId,
+  Contents
+>;
+```
+
+---
+
+# Example
+
+```ts
+export interface ITask extends IAPIResource<ITaskContents> {}
+export interface IUsersHash extends IHash<IUserContents> {}
+export interface IStoresHash extends IHash<IStoreContents> {}
+```
+
+```ts
+getTasks() {
+  return $http.get<IAPIList<ITask, {
+    users: IUsersHash,
+    places: IStoresHash,
+  }>>(`api/tasks`) // return type ~ <IHttpPromise<IAPIList<ITask, ...>>>
+  .then(payload => payload.data)// return type ~ <IAPIList<ITask, ...>>
+}
+```
+
+---
+
+# 1. convert factory code into service code
+
+- ✅ function --> class 
+- ✅ dependency injection using `private`
+- ✅ `this` (beware public/private)
+- ✅ angular.factory(fun) --> angular.service(Class)
+- ✅ sfStuffFactory --> inject stuffService / class StuffService
+- ✅ use Class as interface in existing ts controllers/services
+- ✅ in tests files instanciate service intead of calling it
+- ✅ fix errors you will encounter
+
+---
+
+<Split>
+
+```js
+export default function stuffFactory(
+  $window,
+  Service1InTs,
+  Service2NotConvertedYet
+) {
+  'ngInject';
+  const inner = 'x';
+  const factory = {
+    method1,
+  };
+  return factory;
+  function method1(x) { /* implem */ }
+}
+```
+
+```ts
+import { Service1InTs } from 'path-of-service';
+export class StuffService {
+  inner: string = 'x';
+  /* @ngInject */
+  constructor(
+    private $window: ng.IWindowService,
+    private service1InTs: Service1InTs,
+    private service2NotConvertedYet
+  ) {}
+  method1(x: IX): IReturnType { /* implem */ }
+}
+```
+
+</Split>
+
+---
+
+# 2. convert contoller code
+
+- ✅ dependency injection using `private`
+- ✅ fix errors you will encounter
+
+---
+
+<Split>
+
+```js
+export default class AppController {
+  /* @ngInject */
+  constructor($window, stuffFactory) {
+    Object.assign(this, {
+      $window,
+      stuffFactory,
+    });
+    this.x = 'initial';
+  }
+  $onInit() { /* implem */ }
+  method1() { /* implem */ }
+}
+```
+
+```ts
+import { StuffService } from 'path-to-stuff';
+export class AppController implements ng.IComponentController {
+  x: string = 'initial';
+  /* @ngInject */
+  constructor(
+    private $window: ng.IWindowService,
+    private stuffService: StuffService
+  ) {}
+  $onInit() { /* implem */ }
+  method1() { /* implem */ }
+}
+```
+
+</Split>
+
+---
+
+## Resources
+
+`sf-frontend/src/Typescript.README.md`
+
+---
+
+## Numbers
+
+### JS
+
+221 controllers
+133 factories
+
+### TS
+
+1 controllers
+8 services
+
+
