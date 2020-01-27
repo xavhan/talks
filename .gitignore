@@ -1,2 +1,5 @@
 node_modules/
 .DS_Store
+
+# That deck is using private pictures, I do not want that online
+kids/img
